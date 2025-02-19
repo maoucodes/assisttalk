@@ -1,0 +1,413 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssistTalk</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+            body { 
+                background-color: #1a1b1e; 
+                color: #e4e6ea; 
+                font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+            }
+            .sidebar { 
+                width: 280px; 
+                background-color: #1e1f23; 
+                border-right: 1px solid #2d2e32;
+                transition: all 0.3s ease;
+            }
+            .message-bubble { 
+                max-width: 90%; 
+                margin: 16px 0; 
+                padding: 16px 20px; 
+                border-radius: 12px; 
+                line-height: 1.6;
+                word-wrap: break-word;
+                font-size: 15px;
+                opacity: 0;
+                transform: translateY(20px);
+                animation: messageAppear 0.3s ease forwards;
+            }
+            @keyframes messageAppear {
+                to {
+                    opacity: 1;
+                    transform: translateY(0);
+                }
+            }
+            .user-bubble { 
+                background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%); 
+                color: white; 
+                margin-left: auto; 
+                box-shadow: 0 4px 12px rgba(37, 99, 235, 0.2);
+            }
+            .assistant-bubble { 
+                background: linear-gradient(135deg, #27282d 0%, #1e1f23 100%); 
+                color: #e4e6ea;
+                box-shadow: 0 4px 12px rgba(0,0,0,0.15);
+                border: 1px solid #2d2e32;
+            }
+            .chat-container { 
+                height: calc(100vh - 160px);
+                padding: 24px;
+                background: linear-gradient(to bottom, rgba(26,27,30,0) 0%, rgba(26,27,30,1) 100%);
+                overflow-y: auto;
+                scrollbar-width: thin;
+                scrollbar-color: #2d2e32 transparent;
+            }
+            .chat-container::-webkit-scrollbar {
+                width: 6px;
+            }
+            .chat-container::-webkit-scrollbar-track {
+                background: transparent;
+            }
+            .chat-container::-webkit-scrollbar-thumb {
+                background-color: #2d2e32;
+                border-radius: 3px;
+            }
+            .message-timestamp {
+                font-size: 12px;
+                color: #6b7280;
+                margin-top: 4px;
+                opacity: 0.8;
+            }
+            .message-bubble pre {
+                background: #1a1b1e !important;
+                border-radius: 8px;
+                padding: 12px;
+                margin: 8px 0;
+                overflow-x: auto;
+            }
+            .message-bubble code {
+                font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+                font-size: 14px;
+                padding: 2px 4px;
+                background: rgba(0,0,0,0.2);
+                border-radius: 4px;
+            }
+            .image-preview { 
+                max-width: 400px; 
+                max-height: 400px; 
+                object-fit: contain; 
+                border-radius: 8px; 
+                margin: 12px 0; 
+                border: 1px solid #2d2e32;
+            }
+            .typing-indicator { 
+                display: inline-flex; 
+                align-items: center; 
+                background: #27282d;
+                padding: 8px 16px;
+                border-radius: 20px;
+                border: 1px solid #2d2e32;
+            }
+            .typing-indicator span { 
+                display: inline-block; 
+                width: 4px; 
+                height: 4px; 
+                background: #4b5563; 
+                border-radius: 50%; 
+                margin: 0 2px; 
+                animation: typing 1.4s infinite;
+            }
+            .input-area { 
+                background-color: #27282d; 
+                border: 1px solid #2d2e32;
+                border-radius: 12px;
+                margin: 0 24px 24px;
+                transition: all 0.2s;
+            }
+            .input-area:focus-within { 
+                border-color: #3b82f6; 
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+            }
+            .btn-primary { 
+                background-color: #2563eb;
+                transition: all 0.2s;
+            }
+            .btn-primary:hover { 
+                background-color: #1d4ed8;
+                transform: translateY(-1px);
+            }
+            .new-thread-btn { 
+                transition: all 0.2s;
+                font-weight: 500;
+            }
+            .new-thread-btn:hover { 
+                background-color: #27282d;
+                transform: translateY(-1px);
+            }
+            #model-selector {
+                transition: all 0.2s;
+            }
+            #model-selector:hover {
+                border-color: #3b82f6;
+            }
+            #model-selector:focus {
+                border-color: #3b82f6;
+                box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.1);
+                outline: none;
+            }
+        .sidebar { width: 260px; background-color: #1e1f23; }
+        .message-bubble { 
+            max-width: 85%; 
+            margin: 12px 0; 
+            padding: 14px 18px; 
+            border-radius: 12px; 
+            line-height: 1.5;
+            white-space: pre-wrap;
+            word-wrap: break-word;
+        }
+        .user-bubble { 
+            background-color: #2563eb; 
+            color: white; 
+            margin-left: auto; 
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .assistant-bubble { 
+            background-color: #27282d; 
+            color: #e4e6ea;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.1);
+        }
+        .chat-container { 
+            height: calc(100vh - 180px);
+            padding: 20px;
+        }
+        .image-preview { max-width: 300px; max-height: 300px; object-fit: contain; border-radius: 8px; margin: 8px 0; }
+        .typing-indicator { display: inline-block; margin-left: 4px; }
+        .typing-indicator span { display: inline-block; width: 6px; height: 6px; background: #4b5563; border-radius: 50%; margin: 0 2px; animation: typing 1s infinite; }
+        .typing-indicator span:nth-child(2) { animation-delay: 0.2s; }
+        .typing-indicator span:nth-child(3) { animation-delay: 0.4s; }
+        @keyframes typing {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-4px); }
+        }
+        .input-area { background-color: #27282d; border: 1px solid #383a3f; }
+        .input-area:focus { border-color: #3b82f6; }
+        .btn-primary { background-color: #2563eb; }
+        .btn-primary:hover { background-color: #1d4ed8; }
+        .new-thread-btn { transition: all 0.2s; }
+        .new-thread-btn:hover { background-color: #27282d; }
+    </style>
+</head>
+<body>
+    <div class="flex h-screen">
+        <!-- Sidebar -->
+        <div class="sidebar p-4 flex flex-col">
+            <div class="flex items-center mb-6">
+                <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 24 24' fill='%232563eb' width='24' height='24'%3E%3Cpath d='M12 2C6.48 2 2 6.48 2 12s4.48 10 10 10 10-4.48 10-10S17.52 2 12 2zm0 18c-4.41 0-8-3.59-8-8s3.59-8 8-8 8 3.59 8 8-3.59 8-8 8zm-1-13h2v6h-2zm0 8h2v2h-2z'/%3E%3C/svg%3E" alt="Logo" class="w-8 h-8">
+                <span class="text-xl font-bold ml-2">AssistTalk</span>
+            </div>
+            <select id="model-selector" class="bg-[#27282d] text-gray-100 rounded-lg p-2 mb-4 border border-gray-700">
+                <option value="meta-llama/Llama-Vision-Free">Llama Vision</option>
+                <option value="meta-llama/Llama-3.3-70B-Instruct-Turbo-Free">Llama 3.3 Turbo</option>
+                <option value="deepseek-ai/DeepSeek-R1-Distill-Llama-70B-free">DeepSeek Llama</option>
+            </select>
+            <button class="new-thread-btn flex items-center space-x-2 text-sm px-4 py-2 rounded-lg mb-4 border border-gray-700">
+                <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 4v16m8-8H4" />
+                </svg>
+                <span>New Thread</span>
+            </button>
+            <div class="flex-grow overflow-y-auto">
+                <!-- Thread history would go here -->
+            </div>
+        </div>
+
+        <!-- Main Content -->
+        <div class="flex-1 flex flex-col p-4">
+            <div id="chat-box" class="chat-container flex-grow overflow-y-auto mb-4 p-4">
+                <!-- Messages will appear here -->
+            </div>
+            <div class="flex items-end space-x-2 p-2 rounded-lg input-area">
+                <label class="flex items-center justify-center w-10 h-10 rounded-full hover:bg-gray-700 cursor-pointer transition-colors">
+                    <input type="file" accept="image/*" id="image-upload" class="hidden" onchange="handleImageUpload(event)">
+                    <svg xmlns="http://www.w3.org/2000/svg" class="h-6 w-6 text-gray-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16l4.586-4.586a2 2 0 012.828 0L16 16m-2-2l1.586-1.586a2 2 0 012.828 0L20 14m-6-6h.01M6 20h12a2 2 0 002-2V6a2 2 0 00-2-2H6a2 2 0 00-2 2v12a2 2 0 002 2z" />
+                    </svg>
+                </label>
+                <input type="text" id="user-input" class="flex-1 bg-transparent border-0 focus:ring-0 text-gray-100 placeholder-gray-500 text-sm py-3" placeholder="Ask anything...">
+                <button onclick="sendMessage()" class="btn-primary px-4 py-2 rounded-lg text-sm font-medium text-white hover:bg-blue-600 transition-colors">
+                    Send
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        let messages = [];
+        let currentStream = null;
+        let selectedModel = document.getElementById('model-selector').value;
+
+        document.getElementById('model-selector').addEventListener('change', function() {
+            selectedModel = this.value;
+            messages = [];
+            document.getElementById('chat-box').innerHTML = '';
+        });
+
+        async function handleImageUpload(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+        
+            const formData = new FormData();
+            formData.append('image', file);
+        
+            try {
+                const response = await fetch('/upload-image', {
+                    method: 'POST',
+                    body: formData
+                });
+        
+                if (response.ok) {
+                    const data = await response.json();
+                    const userInput = document.getElementById('user-input').value.trim();
+                    const messageContent = [
+                        {
+                            type: 'text',
+                            text: userInput || 'Analyze this image'
+                        },
+                        {
+                            type: 'image_url',
+                            image_url: {
+                                url: data.url
+                            }
+                        }
+                    ];
+                    appendMessage('user', messageContent);
+                    messages.push({ content: messageContent, role: 'user' });
+                    document.getElementById('user-input').value = '';
+                    sendMessage(true);
+                } else {
+                    throw new Error('Failed to upload image');
+                }
+            } catch (error) {
+                console.error('Error uploading image:', error);
+                alert('Failed to upload image. Please try again.');
+            }
+        }
+
+        function appendMessage(role, content) {
+            const chatBox = document.getElementById('chat-box');
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${role === 'user' ? 'user-bubble' : 'assistant-bubble'}`;
+
+            if (Array.isArray(content)) {
+                // Handle multi-part messages (text + image)
+                content.forEach(part => {
+                    if (part.type === 'text') {
+                        const textDiv = document.createElement('div');
+                        const formattedText = part.text
+                            .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                            .replace(/\n/g, '<br>');
+                        textDiv.innerHTML = formattedText;
+                        messageDiv.appendChild(textDiv);
+                    } else if (part.type === 'image_url') {
+                        const img = document.createElement('img');
+                        img.src = part.image_url.url;
+                        img.className = 'image-preview';
+                        img.onclick = () => window.open(img.src, '_blank');
+                        messageDiv.appendChild(img);
+                    }
+                });
+            } else if (typeof content === 'object' && content.type === 'image_url') {
+                // Handle single image messages
+                const img = document.createElement('img');
+                img.src = content.image_url.url;
+                img.className = 'image-preview';
+                img.onclick = () => window.open(img.src, '_blank');
+                messageDiv.appendChild(img);
+            } else {
+                // Handle text messages
+                const textContent = typeof content === 'string' ? content : JSON.stringify(content);
+                const formattedText = textContent
+                    .replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>')
+                    .replace(/\n/g, '<br>');
+                messageDiv.innerHTML = formattedText;
+            }
+
+            chatBox.appendChild(messageDiv);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function appendTypingIndicator() {
+            const chatBox = document.getElementById('chat-box');
+            const indicator = document.createElement('div');
+            indicator.className = 'message-bubble assistant-bubble typing-indicator';
+            indicator.innerHTML = '<span></span><span></span><span></span>';
+            indicator.id = 'typing-indicator';
+            chatBox.appendChild(indicator);
+            chatBox.scrollTop = chatBox.scrollHeight;
+        }
+
+        function removeTypingIndicator() {
+            const indicator = document.getElementById('typing-indicator');
+            if (indicator) indicator.remove();
+        }
+
+        async function sendMessage(skipInput = false) {
+            if (currentStream) {
+                currentStream.abort();
+                currentStream = null;
+            }
+
+            const userInput = skipInput ? '' : document.getElementById('user-input').value;
+            if (!skipInput && !userInput) return;
+
+            if (!skipInput) {
+                appendMessage('user', userInput);
+                messages.push({ content: userInput, role: 'user' });
+                document.getElementById('user-input').value = '';
+            }
+
+            appendTypingIndicator();
+
+            try {
+                const controller = new AbortController();
+                currentStream = controller;
+
+                const response = await fetch('/chat', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                        message: userInput,
+                        messages: messages,
+                        model: selectedModel
+                    }),
+                    signal: controller.signal
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    removeTypingIndicator();
+                    const assistantMessage = data.messages[data.messages.length - 1].content;
+                    appendMessage('assistant', assistantMessage);
+                    messages = data.messages;
+                } else {
+                    throw new Error('Network response was not ok');
+                }
+            } catch (error) {
+                if (error.name === 'AbortError') return;
+                removeTypingIndicator();
+                appendMessage('assistant', 'Sorry, there was an error processing your request.');
+                console.error('Error:', error);
+            }
+
+            currentStream = null;
+        }
+
+        document.getElementById('user-input').addEventListener('keypress', function(e) {
+            if (e.key === 'Enter') {
+                sendMessage();
+            }
+        });
+
+        document.querySelector('.new-thread-btn').addEventListener('click', function() {
+            messages = [];
+            document.getElementById('chat-box').innerHTML = '';
+        });
+    </script>
+</body>
+</html>
