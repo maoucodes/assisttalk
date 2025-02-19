@@ -53,7 +53,7 @@ def upload_image():
         file.save(file_path)
         
         # Return the URL for the uploaded image
-        image_url = f'/static/uploads/{filename}'
+        image_url = f'https://assisttalk.onrender.com/static/uploads/{filename}'
         return jsonify({'url': image_url})
     
     return jsonify({'error': 'Invalid file type'}), 400
