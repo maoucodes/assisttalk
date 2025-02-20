@@ -1,0 +1,393 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Character Chat - AssistTalk</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/styles/atom-one-dark.min.css">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.7.0/highlight.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+    <style>
+        body { 
+            background-color: #1a1b1e; 
+            color: #e4e6ea; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .loading-animation {
+            padding: 16px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .dot-pulse {
+            position: relative;
+            left: -9999px;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #4b5563;
+            color: #4b5563;
+            box-shadow: 9999px 0 0 -5px;
+            animation: dot-pulse 1.5s infinite linear;
+            animation-delay: 0.25s;
+        }
+        .dot-pulse::before, .dot-pulse::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #4b5563;
+        }
+        .dot-pulse::before {
+            box-shadow: 9984px 0 0 -5px;
+            animation: dot-pulse-before 1.5s infinite linear;
+            animation-delay: 0s;
+        }
+        .dot-pulse::after {
+            box-shadow: 10014px 0 0 -5px;
+            animation: dot-pulse-after 1.5s infinite linear;
+            animation-delay: 0.5s;
+        }
+        @keyframes dot-pulse-before {
+            0% { box-shadow: 9984px 0 0 -5px; }
+            30% { box-shadow: 9984px 0 0 2px; }
+            60%, 100% { box-shadow: 9984px 0 0 -5px; }
+        }
+        @keyframes dot-pulse {
+            0% { box-shadow: 9999px 0 0 -5px; }
+            30% { box-shadow: 9999px 0 0 2px; }
+            60%, 100% { box-shadow: 9999px 0 0 -5px; }
+        }
+        @keyframes dot-pulse-after {
+            0% { box-shadow: 10014px 0 0 -5px; }
+            30% { box-shadow: 10014px 0 0 2px; }
+            60%, 100% { box-shadow: 10014px 0 0 -5px; }
+        }
+        .character-card {
+            background: #1a1b1e;
+            border: 1px solid #2d2e32;
+            border-radius: 8px;
+            transition: all 0.2s;
+            margin-bottom: 8px;
+        }
+        .character-card:hover {
+            background: #27282d;
+            transform: translateY(-2px);
+        }
+        .character-avatar {
+            width: 48px;
+            height: 48px;
+            border-radius: 50%;
+            object-fit: cover;
+        }
+        .message-bubble {
+            max-width: 80%;
+            margin: 12px 0;
+            padding: 12px 16px;
+            border-radius: 12px; 
+            line-height: 1.6;
+            word-wrap: break-word;
+            font-size: 15px;
+            opacity: 0;
+            transform: translateY(20px);
+            animation: messageAppear 0.3s ease forwards;
+            position: relative;
+        }
+        .assistant-bubble { 
+            background: #27282d;
+            color: #e4e6ea;
+            border: 1px solid #2d2e32;
+            margin-right: auto;
+            margin-left: 40px;
+        }
+        .assistant-bubble::before {
+            content: '';
+            position: absolute;
+            left: -40px;
+            top: 0;
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background-size: cover;
+            background-position: center;
+            background-image: url(attr(data-avatar));
+        }
+        .user-bubble {
+            background: #1e1f23;
+            color: #ffffff;
+            margin-left: auto;
+            border: 1px solid #2d2e32;
+        }
+        .action-text {
+            font-style: italic;
+            color: #9ca3af;
+            text-align: center;
+            margin: 8px 0;
+            font-size: 14px;
+        }
+        .loading-animation {
+            padding: 16px;
+            display: flex;
+            justify-content: flex-start;
+        }
+        .dot-pulse {
+            position: relative;
+            left: -9999px;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #4b5563;
+            color: #4b5563;
+            box-shadow: 9999px 0 0 -5px;
+            animation: dot-pulse 1.5s infinite linear;
+            animation-delay: 0.25s;
+        }
+        .dot-pulse::before, .dot-pulse::after {
+            content: '';
+            display: inline-block;
+            position: absolute;
+            top: 0;
+            width: 6px;
+            height: 6px;
+            border-radius: 3px;
+            background-color: #4b5563;
+        }
+        .dot-pulse::before {
+            box-shadow: 9984px 0 0 -5px;
+            animation: dot-pulse-before 1.5s infinite linear;
+            animation-delay: 0s;
+        }
+        .dot-pulse::after {
+            box-shadow: 10014px 0 0 -5px;
+            animation: dot-pulse-after 1.5s infinite linear;
+            animation-delay: 0.5s;
+        }
+        @keyframes dot-pulse-before {
+            0% { box-shadow: 9984px 0 0 -5px; }
+            30% { box-shadow: 9984px 0 0 2px; }
+            60%, 100% { box-shadow: 9984px 0 0 -5px; }
+        }
+        @keyframes dot-pulse {
+            0% { box-shadow: 9999px 0 0 -5px; }
+            30% { box-shadow: 9999px 0 0 2px; }
+            60%, 100% { box-shadow: 9999px 0 0 -5px; }
+        }
+        @keyframes dot-pulse-after {
+            0% { box-shadow: 10014px 0 0 -5px; }
+            30% { box-shadow: 10014px 0 0 2px; }
+            60%, 100% { box-shadow: 10014px 0 0 -5px; }
+        }
+        @keyframes messageAppear {
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <div class="flex-1 flex">
+        <!-- Character Selection Sidebar -->
+        <div class="w-80 bg-[#1e1f23] border-r border-[#2d2e32] p-6 overflow-y-auto">
+            <h2 class="text-xl font-semibold mb-6">Choose a Character</h2>
+            <div class="space-y-4" id="character-list">
+                <!-- Character cards will be populated here -->
+            </div>
+        </div>
+
+        <!-- Chat Interface -->
+        <div class="flex-1 flex flex-col">
+            <div class="p-4 border-b border-[#2d2e32] flex items-center">
+                <img id="active-character-avatar" src="" alt="Character" class="w-12 h-12 rounded-full mr-4">
+                <div>
+                    <h3 id="active-character-name" class="font-semibold text-lg"></h3>
+                    <p id="active-character-personality" class="text-sm text-gray-400"></p>
+                </div>
+            </div>
+
+            <div class="flex-1 overflow-y-auto p-6" id="chat-messages">
+                <!-- Messages will appear here -->
+            </div>
+
+            <div class="p-4 border-t border-[#2d2e32]">
+                <form id="chat-form" class="flex gap-4">
+                    <input type="text" id="message-input" 
+                           class="flex-1 bg-[#1a1b1e] border border-[#2d2e32] rounded-lg px-4 py-3 text-gray-200 placeholder-gray-500 focus:outline-none focus:border-blue-500 focus:ring-1 focus:ring-blue-500"
+                           placeholder="Type your message...">
+                    <button type="submit" 
+                            class="bg-blue-600 hover:bg-blue-700 text-white px-6 py-3 rounded-lg font-medium transition-colors">
+                        Send
+                    </button>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // Character management and chat functionality
+        let activeCharacter = null;
+        let messages = [];
+
+        async function loadCharacters() {
+            const response = await fetch('/get-characters');
+            const characters = await response.json();
+            const characterList = document.getElementById('character-list');
+            characterList.innerHTML = '';
+
+            for (const [id, character] of Object.entries(characters)) {
+                const card = document.createElement('div');
+                card.className = 'character-card p-4 cursor-pointer';
+                card.innerHTML = `
+                    <div class="flex items-center">
+                        <img src="${character.avatar_url || '/static/default-avatar.jpg'}" 
+                             alt="${character.name}" 
+                             class="character-avatar mr-4">
+                        <div>
+                            <h3 class="font-semibold">${character.name}</h3>
+                            <p class="text-sm text-gray-400">${character.personality}</p>
+                        </div>
+                    </div>
+                `;
+                card.onclick = () => selectCharacter(id, character);
+                characterList.appendChild(card);
+            }
+        }
+
+        function selectCharacter(id, character) {
+            activeCharacter = { id, ...character };
+            document.getElementById('active-character-avatar').src = character.avatar_url || '/static/default-avatar.jpg';
+            document.getElementById('active-character-name').textContent = character.name;
+            document.getElementById('active-character-personality').textContent = character.personality;
+            messages = [];
+            document.getElementById('chat-messages').innerHTML = '';
+            addMessage('assistant', `Hello! I am ${character.name}. ${character.personality}. How can I assist you today?`);
+        }
+
+        function addMessage(role, content) {
+            const messageDiv = document.createElement('div');
+            messageDiv.className = `message-bubble ${role}-bubble`;
+            messageDiv.innerHTML = marked.parse(content);
+            document.getElementById('chat-messages').appendChild(messageDiv);
+            messageDiv.scrollIntoView({ behavior: 'smooth' });
+            messages.push({ role, content });
+        }
+
+        function updateLastMessage(role, content) {
+            const messages = document.getElementById('chat-messages');
+            const lastMessage = messages.lastElementChild;
+            
+            if (lastMessage && lastMessage.classList.contains(`${role}-bubble`)) {
+                lastMessage.innerHTML = marked.parse(content);
+            } else {
+                addMessage(role, content);
+            }
+        }
+
+        document.getElementById('chat-form').addEventListener('submit', async function(e) {
+            e.preventDefault();
+            
+            if (!activeCharacter) {
+                alert('Please select a character first');
+                return;
+            }
+            
+            const input = document.getElementById('message-input');
+            const message = input.value.trim();
+            
+            if (!message) return;
+            
+            // Show loading animation
+            const loadingDiv = document.createElement('div');
+            loadingDiv.className = 'loading-animation';
+            loadingDiv.innerHTML = '<div class="dot-pulse"></div>';
+            document.getElementById('chat-messages').appendChild(loadingDiv);
+            loadingDiv.scrollIntoView({ behavior: 'smooth' });
+            
+            input.value = '';
+            addMessage('user', message);
+            
+            try {
+                // Remove loading animation if exists
+                const loadingAnimation = document.querySelector('.loading-animation');
+                if (loadingAnimation) {
+                    loadingAnimation.remove();
+                }
+
+                const response = await fetch('/character-chat', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        character_id: activeCharacter.id,
+                        message: message,
+                        messages: messages
+                    })
+                });
+
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+
+                const reader = response.body.getReader();
+                let assistantMessage = '';
+                const decoder = new TextDecoder();
+                let buffer = '';
+
+                while (true) {
+                    const { done, value } = await reader.read();
+                    if (done) break;
+
+                    buffer += decoder.decode(value, { stream: true });
+                    const lines = buffer.split('\n');
+                    
+                    buffer = lines.pop();
+                    
+                    for (const line of lines) {
+                        if (line.trim() === '') continue;
+                        
+                        if (line.startsWith('data: ')) {
+                            try {
+                                const data = JSON.parse(line.slice(6));
+                                if (data.error) {
+                                    addMessage('assistant', `Error: ${data.error}`);
+                                    return;
+                                } else if (data.text) {
+                                    assistantMessage += data.text;
+                                    updateLastMessage('assistant', assistantMessage);
+                                }
+                            } catch (e) {
+                                console.error('Error parsing SSE data:', e);
+                            }
+                        }
+                    }
+                }
+
+                if (buffer.trim() && buffer.startsWith('data: ')) {
+                    try {
+                        const data = JSON.parse(buffer.slice(6));
+                        if (data.text) {
+                            assistantMessage += data.text;
+                            updateLastMessage('assistant', assistantMessage);
+                        }
+                    } catch (e) {
+                        console.error('Error parsing final SSE data:', e);
+                    }
+                }
+
+                if (assistantMessage) {
+                    messages.push({ role: 'assistant', content: assistantMessage });
+                }
+            } catch (error) {
+                console.error('Error:', error);
+                addMessage('assistant', 'Sorry, there was an error processing your message.');
+            }
+        });
+        // Initialize
+        loadCharacters();
+    </script>
+</body>
+</html>

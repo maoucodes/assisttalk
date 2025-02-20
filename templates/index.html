@@ -1,0 +1,75 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>AssistTalk - AI Chat Assistant</title>
+    <link href="https://cdn.jsdelivr.net/npm/tailwindcss@2.2.19/dist/tailwind.min.css" rel="stylesheet">
+    <style>
+        body { 
+            background-color: #1a1b1e; 
+            color: #e4e6ea; 
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif;
+        }
+        .gradient-text {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+        }
+        .hero-button {
+            background: linear-gradient(135deg, #2563eb 0%, #1d4ed8 100%);
+            transition: all 0.3s ease;
+        }
+        .hero-button:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(37, 99, 235, 0.3);
+        }
+    </style>
+</head>
+<body class="min-h-screen flex flex-col">
+    <main class="flex-grow flex items-center justify-center px-4 py-12">
+        <div class="text-center max-w-3xl mx-auto">
+            <h1 class="text-5xl font-bold mb-6">
+                Welcome to <span class="gradient-text">AssistTalk</span>
+            </h1>
+            <p class="text-xl text-gray-400 mb-8">
+                Experience intelligent conversations with our advanced AI chat assistant.
+                Powered by state-of-the-art language models for natural and helpful interactions.
+            </p>
+            <div class="space-y-6 flex flex-col items-center">
+                <div class="flex space-x-4">
+                    <a href="/chat" class="hero-button px-8 py-4 text-white font-semibold rounded-lg text-lg flex items-center">
+                        <span>Start Regular Chat</span>
+                    </a>
+                    <a href="/character-chat" class="hero-button px-8 py-4 text-white font-semibold rounded-lg text-lg flex items-center">
+                        <span>Try Character Chat</span>
+                    </a>
+                </div>
+                <p class="text-sm text-gray-500">
+                    Using advanced models from Together AI
+                </p>
+            </div>
+            <div class="mt-16 grid grid-cols-1 md:grid-cols-2 gap-8 text-left">
+                <div class="p-8 bg-[#1e1f23] rounded-lg border border-[#2d2e32] space-y-4">
+                    <h3 class="text-2xl font-semibold">Regular Chat</h3>
+                    <p class="text-gray-400">Have natural conversations with our AI assistant. Perfect for general discussions, questions, and problem-solving.</p>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>• Context-aware responses</li>
+                        <li>• Image support for richer interactions</li>
+                        <li>• Advanced language understanding</li>
+                    </ul>
+                </div>
+                <div class="p-8 bg-[#1e1f23] rounded-lg border border-[#2d2e32] space-y-4">
+                    <h3 class="text-2xl font-semibold">Character Chat</h3>
+                    <p class="text-gray-400">Chat with unique AI personalities. Each character brings their own background and expertise to the conversation.</p>
+                    <ul class="space-y-2 text-gray-400">
+                        <li>• Multiple unique personalities</li>
+                        <li>• Specialized knowledge domains</li>
+                        <li>• Immersive chat experience</li>
+                    </ul>
+                </div>
+            </div>
+        </div>
+    </main>
+</body>
+</html>

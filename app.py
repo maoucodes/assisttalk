@@ -1,7 +1,8 @@
-from flask import Flask, request, jsonify, render_template
+from flask import Flask, request, jsonify, render_template, Response
 import requests
 import json
 import time
+from character import characters
 
 app = Flask(__name__)
 
@@ -22,7 +23,102 @@ headers = {
 
 @app.route('/')
 def index():
+    return render_template('index.html')
+
+@app.route('/chat')
+def chat_page():
     return render_template('chat.html')
+
+@app.route('/character-chat')
+def character_chat_page():
+    return render_template('character-chat.html')
+
+@app.route('/get-characters')
+def get_characters():
+    return jsonify({
+        id: {
+            'name': char.name,
+            'personality': char.personality,
+            'background': char.background,
+            'avatar_url': char.avatar_url
+        } for id, char in characters.items()
+    })
+
+@app.route('/character-chat', methods=['POST'])
+def character_chat():
+    data = request.json
+    character_id = data.get('character_id')
+    user_message = data.get('message')
+    chat_messages = data.get('messages', [])
+    
+    if character_id not in characters:
+        return jsonify({'error': 'Character not found'}), 404
+    
+    character = characters[character_id]
+    
+    # Prepare messages for the API
+    api_messages = [character.get_initial_message()]
+    api_messages.append({
+        'role': 'user',
+        'content': user_message
+    })
+    for msg in chat_messages:
+        api_messages.append({
+            'role': msg['role'],
+            'content': msg['content']
+        })
+    
+    json_data = {
+        'model': 'meta-llama/Llama-Vision-Free',
+        'max_tokens': None,
+        'temperature': 0.7,
+        'top_p': 0.7,
+        'top_k': 50,
+        'repetition_penalty': 1,
+        'stream_tokens': True,
+        'stop': ['<|eot_id|>', '<|eom_id|>'],
+        'messages': api_messages,
+        'stream': True,
+    }
+    
+    def generate():
+        max_retries = 5
+        base_delay = 1
+        
+        for attempt in range(max_retries):
+            try:
+                response = requests.post('https://api.together.ai/inference', cookies=cookies, headers=headers, json=json_data, stream=True)
+                
+                if response.status_code == 200:
+                    for line in response.iter_lines():
+                        if line:
+                            decoded_line = line.decode('utf-8')
+                            if decoded_line.startswith('data: '):
+                                try:
+                                    response_data = json.loads(decoded_line[6:])
+                                    if 'choices' in response_data and len(response_data['choices']) > 0:
+                                        text = response_data['choices'][0].get('text', '')
+                                        if text:
+                                            yield f'data: {json.dumps({"text": text})}\n\n'
+                                except json.JSONDecodeError:
+                                    continue
+                    return
+                elif response.status_code == 429:
+                    if attempt < max_retries - 1:
+                        time.sleep(0.5)
+                        continue
+                    yield f'data: {json.dumps({"error": "Rate limited, maximum retries reached"})}\n\n'
+                    return
+                else:
+                    yield f'data: {json.dumps({"error": f"Unexpected status code: {response.status_code}"})}\n\n'
+                    return
+            except Exception as e:
+                yield f'data: {json.dumps({"error": f"An error occurred: {str(e)}"})}\n\n'
+                return
+        
+        yield f'data: {json.dumps({"error": "Maximum retries reached"})}\n\n'
+    
+    return Response(generate(), mimetype='text/event-stream')
 
 import os
 from werkzeug.utils import secure_filename
@@ -53,7 +149,7 @@ def upload_image():
         file.save(file_path)
         
         # Return the URL for the uploaded image
-        image_url = f'https://assisttalk.onrender.com/static/uploads/{filename}'
+        image_url = f'/static/uploads/{filename}'
         return jsonify({'url': image_url})
     
     return jsonify({'error': 'Invalid file type'}), 400
@@ -92,6 +188,34 @@ def chat():
         'messages': current_messages,
         'stream': True,
     }
+    
+    def generate():
+        max_retries = 5
+        base_delay = 1  # Initial delay in seconds
+        
+        for attempt in range(max_retries):
+            response = requests.post('https://api.together.ai/inference', cookies=cookies, headers=headers, json=json_data, stream=True)
+            
+            if response.status_code == 200:
+                for line in response.iter_lines():
+                    if line:
+                        decoded_line = line.decode('utf-8')
+                        if decoded_line.startswith('data: '):
+                            yield f'{decoded_line}\n\n'
+                return
+            elif response.status_code == 429:
+                if attempt < max_retries - 1:  # Don't sleep on the last attempt
+                    time.sleep(0.5)
+                    continue
+                yield 'data: {"error": "Rate limited, maximum retries reached"}\n\n'
+                return
+            else:
+                yield f'data: {{"error": "Unexpected status code: {response.status_code}"}}\n\n'
+                return
+        
+        yield 'data: {"error": "Maximum retries reached"}\n\n'
+    
+    return Response(generate(), mimetype='text/event-stream')
     
     max_retries = 5
     base_delay = 1  # Initial delay in seconds
