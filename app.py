@@ -1,10 +1,12 @@
 from flask import Flask, request, jsonify, render_template, Response
+from flask_cors import CORS
 import requests
 import json
 import time
 from character import characters
 
 app = Flask(__name__)
+CORS(app)  #
 
 cookies = {
     'intercom-id-evnv2y8k': 'bb169723-f3fa-497a-9b9a-eff63e9f4a37',
