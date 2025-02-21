@@ -38,8 +38,18 @@ def get_characters():
     return jsonify({
         id: {
             'name': char.name,
+            'age': char.age,
+            'gender': char.gender,
+            'pronouns': char.pronouns,
+            'occupation': char.occupation,
             'personality': char.personality,
             'background': char.background,
+            'hobbies': char.hobbies,
+            'strengths': char.strengths,
+            'weaknesses': char.weaknesses,
+            'speech_style': char.speech_style,
+            'conversational_quirks': char.conversational_quirks,
+            'knowledge_base': char.knowledge_base,
             'avatar_url': char.avatar_url
         } for id, char in characters.items()
     })
