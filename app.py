@@ -3,7 +3,6 @@ import requests
 from flask_cors import CORS
 import time
 from flask import stream_with_context
-from concurrent.futures import ThreadPoolExecutor
 
 app = Flask(__name__)
 CORS(app)
@@ -27,8 +26,6 @@ headers = {
 @app.route('/')
 def index():
     return render_template('index.html')
-
-executor = ThreadPoolExecutor(max_workers=10)
 
 @app.route('/chat', methods=['POST'])
 def chat():
@@ -65,9 +62,9 @@ def chat():
         'stream': True,
     }
     
-    @stream_with_context
     def generate():
         max_retries = 5
+        base_delay = 1  # Initial delay in seconds
         
         for attempt in range(max_retries):
             response = requests.post('https://api.together.ai/inference', cookies=cookies, headers=headers, json=json_data, stream=True)
@@ -91,4 +88,36 @@ def chat():
         
         yield 'data: {"error": "Maximum retries reached"}\n\n'
     
-    return Response(executor.submit(generate).result(), mimetype='text/event-stream')
+    return Response(generate(), mimetype='text/event-stream')
+    
+    max_retries = 5
+    base_delay = 1  # Initial delay in seconds
+    
+    for attempt in range(max_retries):
+        response = requests.post('https://api.together.ai/inference', cookies=cookies, headers=headers, json=json_data, stream=True)
+        
+        if response.status_code == 200:
+            assistant_response = ""
+            for line in response.iter_lines():
+                if line:
+                    decoded_line = line.decode('utf-8')
+                    if decoded_line.startswith("data: "):
+                        try:
+                            data = json.loads(decoded_line[6:])  # Remove "data: " prefix and parse JSON
+                            if "choices" in data:
+                                for choice in data["choices"]:
+                                    assistant_response += choice["text"]
+                        except json.JSONDecodeError:
+                            continue
+            messages.append({'content': assistant_response, 'role': 'assistant'})
+            return jsonify({'messages': messages})
+        elif response.status_code == 429:
+            if attempt < max_retries - 1:  # Don't sleep on the last attempt
+                delay = base_delay * (2 ** attempt)  # Exponential backoff
+                time.sleep(0.5)
+                continue
+            return jsonify({'error': 'Rate limited, maximum retries reached'}), 429
+        else:
+            return jsonify({'error': f'Unexpected status code: {response.status_code}'}), response.status_code
+    
+    return jsonify({'error': 'Maximum retries reached'}), 429
