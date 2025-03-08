@@ -88,35 +88,26 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
                 title = title_tag.text if title_tag else ""
                 description = description_tag.text if description_tag else ""
 
-                try:
-                    page_scrape = curlreq.get(link, impersonate='chrome110')
-                    page_scrape.encoding = 'utf-8'
-                    page_soup = BeautifulSoup(page_scrape.text, "html.parser")
-                    
-                    # Remove navigation, header, footer, and sidebar elements
-                    for element in page_soup.find_all(['nav', 'header', 'footer', 'aside']):
-                        element.decompose()
-                    
-                    # Remove language selection menus
-                    for element in page_soup.find_all('div', class_=['language-selector', 'lang-menu', 'toc']):
-                        element.decompose()
-                    
-                    main_content = page_soup.find(['article', 'main']) or page_soup.find('div', {'id': ['content', 'main-content']})
-                    if main_content:
-                        # Remove unwanted elements
-                        for element in main_content(['script', 'style', 'noscript', 'svg']):
-                            element.decompose()
-                            
-                        # Get text and clean it
-                        text = main_content.get_text(separator=' ', strip=True)
-                        # Remove excessive whitespace and normalize
-                        text = ' '.join(filter(None, text.split()))
-                        # Limit length and handle encoding
-                        page_text = text[:3000]
-                    else:
+                # Only get page_text if advanced mode and we haven't gotten any yet
+                if advanced and not any('page_text' in result for result in results_list):
+                    try:
+                        page_scrape = curlreq.get(link, impersonate='chrome110')
+                        page_scrape.encoding = 'utf-8'
+                        page_soup = BeautifulSoup(page_scrape.text, "html.parser")
+                        
+                        main_content = page_soup.find(['article', 'main']) or page_soup.find('div', {'id': ['content', 'main-content']})
+                        if main_content:
+                            for element in main_content(['script', 'style', 'noscript', 'svg']):
+                                element.decompose()
+                            text = main_content.get_text(separator=' ', strip=True)
+                            page_text = ' '.join(filter(None, text.split()))[:2000]
+                        else:
+                            page_text = ""
+                    except Exception:
                         page_text = ""
-                except Exception:
+                else:
                     page_text = ""
+
 
                 fetched_results += 1
                 new_results += 1
