@@ -4,3 +4,4 @@ requests
 gunicorn
 beautifulsoup4
 urllib3
+curl_cffi
