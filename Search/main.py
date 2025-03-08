@@ -4,6 +4,7 @@ from bs4 import BeautifulSoup
 from requests import get
 from urllib.parse import unquote # to decode the url
 from Search.useragentka import get_useragent
+from curl_cffi import requests as curlreq
 
 def _req(term, results, lang, start, proxies, timeout, safe, ssl_verify, region):
     resp = get(
@@ -49,9 +50,10 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
     proxies = {"https": proxy, "http": proxy} if proxy and (proxy.startswith("https") or proxy.startswith("http")) else None
 
     start = start_num
-    fetched_results = 0  # Keep track of the total fetched results
-    fetched_links = set() # to keep track of links that are already seen previously
-    results_list = []  # List to store results
+    fetched_results = 0
+    fetched_links = set()
+    results_list = []
+    image_results = []  # New list for image results
 
     while fetched_results < num_results:
         # Send request
@@ -61,7 +63,17 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
         # Parse
         soup = BeautifulSoup(resp.text, "html.parser")
         result_block = soup.find_all("div", class_="ezO2md")
-        new_results = 0  # Keep track of new results in this iteration
+        new_results = 0
+
+        # Find all images on the page
+        all_images = soup.find_all("img")
+        for img in all_images:
+            if img.get("src") and img.get("src").startswith("https://encrypted-tbn0.gstatic.com/images?q="):
+                image_results.append({
+                    "src": img["src"],
+                    "alt": img.get("alt", ""),
+                    "class": img.get("class", [])
+                })
 
         for result in result_block:
             link_tag = result.find("a", href=True)
@@ -76,11 +88,46 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
                 title = title_tag.text if title_tag else ""
                 description = description_tag.text if description_tag else ""
 
+                try:
+                    page_scrape = curlreq.get(link, impersonate='chrome110')
+                    page_scrape.encoding = 'utf-8'
+                    page_soup = BeautifulSoup(page_scrape.text, "html.parser")
+                    
+                    # Remove navigation, header, footer, and sidebar elements
+                    for element in page_soup.find_all(['nav', 'header', 'footer', 'aside']):
+                        element.decompose()
+                    
+                    # Remove language selection menus
+                    for element in page_soup.find_all('div', class_=['language-selector', 'lang-menu', 'toc']):
+                        element.decompose()
+                    
+                    main_content = page_soup.find(['article', 'main']) or page_soup.find('div', {'id': ['content', 'main-content']})
+                    if main_content:
+                        # Remove unwanted elements
+                        for element in main_content(['script', 'style', 'noscript', 'svg']):
+                            element.decompose()
+                            
+                        # Get text and clean it
+                        text = main_content.get_text(separator=' ', strip=True)
+                        # Remove excessive whitespace and normalize
+                        text = ' '.join(filter(None, text.split()))
+                        # Limit length and handle encoding
+                        page_text = text[:3000]
+                    else:
+                        page_text = ""
+                except Exception:
+                    page_text = ""
+
                 fetched_results += 1
                 new_results += 1
                 
                 if advanced:
-                    results_list.append({"link":link, "title":title, "description":description})
+                    results_list.append({
+                        "link": link,
+                        "title": title,
+                        "description": description,
+                        "page_text": page_text,
+                    })
                 else:
                     results_list.append(link)
 
@@ -93,4 +140,4 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
         start += 10
         sleep(sleep_interval)
 
-    return results_list
+    return {"results": results_list, "images": image_results}

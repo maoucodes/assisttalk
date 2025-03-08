@@ -93,6 +93,5 @@ def chat():
 @app.route('/search', methods=['POST', 'GET'])
 def search_google():
     query = request.args.get('query')
-    result = search(query, advanced=True, num_results=5)
-    print(result)
+    result = search(query, advanced=True, num_results=4)
     return jsonify(result)
