@@ -2,3 +2,5 @@ flask
 flask_cors
 requests
 gunicorn
+beautifulsoup4
+urllib3
