@@ -100,7 +100,7 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
                             for element in main_content(['script', 'style', 'noscript', 'svg']):
                                 element.decompose()
                             text = main_content.get_text(separator=' ', strip=True)
-                            page_text = ' '.join(filter(None, text.split()))[:2000]
+                            page_text = ' '.join(filter(None, text.split()))[:3000]
                         else:
                             page_text = ""
                     except Exception:

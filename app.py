@@ -4,7 +4,9 @@ from flask_cors import CORS
 import time
 from flask import stream_with_context
 from Search.main import search
+
 app = Flask(__name__)
+
 CORS(app)
 
 
@@ -93,5 +95,5 @@ def chat():
 @app.route('/search', methods=['POST', 'GET'])
 def search_google():
     query = request.args.get('query')
-    result = search(query, advanced=True, num_results=4)
+    result = search(query, advanced=True, num_results=10)
     return jsonify(result)
