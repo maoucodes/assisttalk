@@ -5,6 +5,7 @@ from requests import get
 from urllib.parse import unquote # to decode the url
 from Search.useragentka import get_useragent
 from curl_cffi import requests as curlreq
+from Search.gettyimages import get_images
 
 def _req(term, results, lang, start, proxies, timeout, safe, ssl_verify, region):
     resp = get(
@@ -146,4 +147,8 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
         start += 10
         sleep(sleep_interval)
 
-    return {"results": results_list, "images": image_results}
+    if image_results == [] :
+        images = get_images(term)
+        return {"results": results_list, "images": images}
+    else:
+        return {"results": results_list, "images": image_results}
