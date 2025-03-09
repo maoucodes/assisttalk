@@ -68,15 +68,24 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
 
         # Find all images on the page
         try:
-            all_images = soup.find_all("img", class_="rg_i")  # Google's image class
+            all_images = soup.find_all("img")  # Google's image class
             for img in all_images:
                 img_src = img.get("src") or img.get("data-src")
-                if img_src and img_src.startswith("http"):
-                    image_results.append({
-                        "src": img_src,
-                        "alt": img.get("alt", ""),
-                        "class": img.get("class", [])
-                    })
+                if img_src:
+                    # Handle base64 images
+                    if img_src.startswith("data:image"):
+                        image_results.append({
+                            "src": img_src,  # Already base64 encoded
+                            "alt": img.get("alt", ""),
+                            "class": img.get("class", []),
+                        })
+                    # Handle regular image URLs
+                    elif img_src.startswith("http"):
+                        image_results.append({
+                            "src": img_src,
+                            "alt": img.get("alt", ""),
+                            "class": img.get("class", []),
+                        })
         except Exception as e:
             print(f"Error parsing images: {str(e)}")
 
