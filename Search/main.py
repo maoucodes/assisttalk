@@ -66,14 +66,18 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
         new_results = 0
 
         # Find all images on the page
-        all_images = soup.find_all("img")
-        for img in all_images:
-            if img.get("src") and img.get("src").startswith("https://encrypted-tbn0.gstatic.com/images?q="):
-                image_results.append({
-                    "src": img["src"],
-                    "alt": img.get("alt", ""),
-                    "class": img.get("class", [])
-                })
+        try:
+            all_images = soup.find_all("img", class_="rg_i")  # Google's image class
+            for img in all_images:
+                img_src = img.get("src") or img.get("data-src")
+                if img_src and img_src.startswith("http"):
+                    image_results.append({
+                        "src": img_src,
+                        "alt": img.get("alt", ""),
+                        "class": img.get("class", [])
+                    })
+        except Exception as e:
+            print(f"Error parsing images: {str(e)}")
 
         for result in result_block:
             link_tag = result.find("a", href=True)
@@ -95,15 +99,26 @@ def search(term, num_results=10, lang="en", proxy=None, advanced=False, sleep_in
                         page_scrape.encoding = 'utf-8'
                         page_soup = BeautifulSoup(page_scrape.text, "html.parser")
                         
-                        main_content = page_soup.find(['article', 'main']) or page_soup.find('div', {'id': ['content', 'main-content']})
+                        # Try multiple strategies to find main content
+                        main_content = (
+                            page_soup.find(['article', 'main']) or
+                            page_soup.find('div', {'id': ['content', 'main-content', 'body-content']}) or
+                            page_soup.find('div', {'class': ['content', 'main', 'article', 'post']}) or
+                            page_soup.find('div', {'role': 'main'}) or
+                            page_soup.body
+                        )
                         if main_content:
-                            for element in main_content(['script', 'style', 'noscript', 'svg']):
+                            # Remove unwanted elements
+                            for element in main_content(['script', 'style', 'noscript', 'svg', 'header', 'footer', 'nav']):
                                 element.decompose()
+                            # Extract text with better cleaning
                             text = main_content.get_text(separator=' ', strip=True)
-                            page_text = ' '.join(filter(None, text.split()))[:3000]
+                            text = ' '.join(line.strip() for line in text.splitlines() if line.strip())
+                            page_text = ' '.join(word for word in text.split() if len(word) > 1)[:3000]
                         else:
                             page_text = ""
-                    except Exception:
+                    except Exception as e:
+                        print(f"Error scraping {link}: {str(e)}")
                         page_text = ""
                 else:
                     page_text = ""
