@@ -115,5 +115,5 @@ def search_google():
     return jsonify(result)
 
 @app.route('/suggestions', methods=['POST', 'GET'])
-def search_google():
+def get_suggestions():
     return get_trending_news()
