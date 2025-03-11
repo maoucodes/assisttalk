@@ -4,6 +4,7 @@ from flask_cors import CORS
 import time
 from flask import stream_with_context
 from Search.main import search
+from explore.index import get_trending_news
 
 app = Flask(__name__)
 
@@ -112,3 +113,7 @@ def search_google():
     query = request.args.get('query')
     result = search(query, advanced=True, num_results=10)
     return jsonify(result)
+
+@app.route('/suggestions', methods=['POST', 'GET'])
+def search_google():
+    return get_trending_news()
