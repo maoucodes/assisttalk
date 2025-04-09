@@ -10,35 +10,37 @@ app = Flask(__name__)
 
 CORS(app)
 
-
 cookies = {
     'intercom-id-evnv2y8k': 'fea4d452-f9be-42e0-93e3-1e47a3836362',
     'intercom-device-id-evnv2y8k': '2bb3e469-0159-4b6b-a33e-1aea4b51ccb1',
     '__stripe_mid': 'e0f7c1ba-56c6-44d4-ba1d-cf4611453eb43cf922',
-    'state-csrf': 'z4pfq6gvoqmg92gkq6bljm',
-    'together_auth_cookie': '%7B%22expires%22%3A%222026-03-11T14%3A02%3A04.928Z%22%2C%22session%22%3A%22b672ad1b7784bcbb96a5b43058d3d4fbd8327f32dd020f12664307eed353c1b86f1e0d515a4c8b2d990dc5017ed1f13cd7514dee6263bcbd9e03446143245ba0c21968f273967cdb73dd6fedb0a9ff2b65a3ed2ce66b2cd4f94053c747be019d93327fa1f6b24bca9a559ba98ec48f2b51c3be242891d86bb670453120eed64e%22%7D',
-    'AMP_MKTG_7112ee0414': 'JTdCJTIycmVmZXJyZXIlMjIlM0ElMjJodHRwcyUzQSUyRiUyRmFjY291bnRzLmdvb2dsZS5jb20lMkYlMjIlMkMlMjJyZWZlcnJpbmdfZG9tYWluJTIyJTNBJTIyYWNjb3VudHMuZ29vZ2xlLmNvbSUyMiU3RA==',
-    'intercom-session-evnv2y8k': 'UWtNaFEraEJ3ZzcydXlwUC94MHhPcGg3eGZ6RXJkM2c3a2J3R1dwUGR4RWRzQnozWFNLQ0tqbW5za0gvU3RodmNZNXh4NVhRL3I5RWhwNjZKRnd5M21XRm9sZUZhTm05ZUUvaXMxZEYrNjQ9LS1OS0dDcFpuZGRCRE5XaWkxcDVZOEtBPT0=--83289f02195d8a45658bb26d7036c1bf9cfe9887',
-    '__stripe_sid': '7e7f0bab-efaa-4ec6-ae34-2857cccc4f644bc033',
-    'AMP_7112ee0414': 'JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjI5NGU0MzFjOS02OTM0LTQwMGItYTk3Ni0yZjEyNzZmNjg4YzklMjIlMkMlMjJ1c2VySWQlMjIlM0ElMjI2N2I4M2E1Y2Q4MzFiZTcxYjAyYjM4MmElMjIlMkMlMjJzZXNzaW9uSWQlMjIlM0ExNzQxNzAxNzE5MDE5JTJDJTIyb3B0T3V0JTIyJTNBZmFsc2UlMkMlMjJsYXN0RXZlbnRUaW1lJTIyJTNBMTc0MTcwMTc1NTU4MSUyQyUyMmxhc3RFdmVudElkJTIyJTNBODklMkMlMjJwYWdlQ291bnRlciUyMiUzQTQlN0Q=',
+    'state-csrf': '6f2o8nqgee2dfqdmhaxipe',
+    'together_auth_cookie': '%7B%22expires%22%3A%222026-04-09T15%3A14%3A08.985Z%22%2C%22session%22%3A%220eae08c6fd1b79a22476a317d440a2104d74cd3ba333e40771b5ce50a90784297eb82eff36263debca2ee0658abe3e43cab97f87794421111d4bdec56b43dd2595ee22a165c123ba3d0f807759555b5f6d3f51b7c248e7cefcdf0f0b897f62b25b2a569e2cb89633032f15dca9818f39ed49f3ac2d7e0bc3d24517c62c78b1e4%22%7D',
+    '__stripe_sid': '979e00a2-06ed-45be-9a95-88d7e7580f625ccce4',
+    'intercom-session-evnv2y8k': 'TzZzSzBNRG8xdHJtTVprMm1zUXFob0M2ekhFV3VmeDZFcW5UVldlYmFYc3RsRjFmdWJidjU1ZXVSZzNOSW9QTE82OUx6anlvMWVncmlTd2ZvOERDUXN4OUdoSEM5ZzRnQmh4d2o5S3JKeDA9LS00S3JOclNpNzU0VkVBaTNRNWhSMm93PT0=--2719775e99e920753d35527a45a6731bac5e8f8f',
+    'AMP_7112ee0414': 'JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjJmY2ZmNjE3Ny00Yzg0LTRlOTItYTFhMC1kM2Y1ZjllOTFkYTglMjIlMkMlMjJ1c2VySWQlMjIlM0ElMjI2N2I1ZDkwNDNkZTIyN2Q0OGIzMWEwZTMlMjIlMkMlMjJzZXNzaW9uSWQlMjIlM0ExNzQ0MjExNjQyMjEwJTJDJTIyb3B0T3V0JTIyJTNBZmFsc2UlMkMlMjJsYXN0RXZlbnRUaW1lJTIyJTNBMTc0NDIxMTc1ODAwOSUyQyUyMmxhc3RFdmVudElkJTIyJTNBMjMyJTJDJTIycGFnZUNvdW50ZXIlMjIlM0E1JTdE',
 }
 
 headers = {
-    'accept': '*/*',
+    'accept': 'application/json',
     'accept-language': 'en-US,en;q=0.9,ja;q=0.8',
-    'authorization': 'Bearer bb80c2632e2d0ee9c8b5208fcfca771159cf0fd8f9b06404c9f2103ca936310e',
+    'authorization': 'Bearer 4d900964e385651ea685af6f6cd5573a17b421f50657f73f903525177915a7e2',
     'content-type': 'application/json',
-    'origin': 'https://api.together.ai',
     'priority': 'u=1, i',
-    'referer': 'https://api.together.ai/playground/chat/meta-llama/Meta-Llama-3.1-405B-Instruct-Turbo',
-    'sec-ch-ua': '"Chromium";v="134", "Not:A-Brand";v="24", "Google Chrome";v="134"',
+    'sec-ch-ua': '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
     'sec-ch-ua-mobile': '?0',
     'sec-ch-ua-platform': '"macOS"',
     'sec-fetch-dest': 'empty',
     'sec-fetch-mode': 'cors',
     'sec-fetch-site': 'same-origin',
-    'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/134.0.0.0 Safari/537.36',
-    # 'cookie': 'intercom-id-evnv2y8k=fea4d452-f9be-42e0-93e3-1e47a3836362; intercom-device-id-evnv2y8k=2bb3e469-0159-4b6b-a33e-1aea4b51ccb1; __stripe_mid=e0f7c1ba-56c6-44d4-ba1d-cf4611453eb43cf922; state-csrf=z4pfq6gvoqmg92gkq6bljm; together_auth_cookie=%7B%22expires%22%3A%222026-03-11T14%3A02%3A04.928Z%22%2C%22session%22%3A%22b672ad1b7784bcbb96a5b43058d3d4fbd8327f32dd020f12664307eed353c1b86f1e0d515a4c8b2d990dc5017ed1f13cd7514dee6263bcbd9e03446143245ba0c21968f273967cdb73dd6fedb0a9ff2b65a3ed2ce66b2cd4f94053c747be019d93327fa1f6b24bca9a559ba98ec48f2b51c3be242891d86bb670453120eed64e%22%7D; AMP_MKTG_7112ee0414=JTdCJTIycmVmZXJyZXIlMjIlM0ElMjJodHRwcyUzQSUyRiUyRmFjY291bnRzLmdvb2dsZS5jb20lMkYlMjIlMkMlMjJyZWZlcnJpbmdfZG9tYWluJTIyJTNBJTIyYWNjb3VudHMuZ29vZ2xlLmNvbSUyMiU3RA==; intercom-session-evnv2y8k=UWtNaFEraEJ3ZzcydXlwUC94MHhPcGg3eGZ6RXJkM2c3a2J3R1dwUGR4RWRzQnozWFNLQ0tqbW5za0gvU3RodmNZNXh4NVhRL3I5RWhwNjZKRnd5M21XRm9sZUZhTm05ZUUvaXMxZEYrNjQ9LS1OS0dDcFpuZGRCRE5XaWkxcDVZOEtBPT0=--83289f02195d8a45658bb26d7036c1bf9cfe9887; __stripe_sid=7e7f0bab-efaa-4ec6-ae34-2857cccc4f644bc033; AMP_7112ee0414=JTdCJTIyZGV2aWNlSWQlMjIlM0ElMjI5NGU0MzFjOS02OTM0LTQwMGItYTk3Ni0yZjEyNzZmNjg4YzklMjIlMkMlMjJ1c2VySWQlMjIlM0ElMjI2N2I4M2E1Y2Q4MzFiZTcxYjAyYjM4MmElMjIlMkMlMjJzZXNzaW9uSWQlMjIlM0ExNzQxNzAxNzE5MDE5JTJDJTIyb3B0T3V0JTIyJTNBZmFsc2UlMkMlMjJsYXN0RXZlbnRUaW1lJTIyJTNBMTc0MTcwMTc1NTU4MSUyQyUyMmxhc3RFdmVudElkJTIyJTNBODklMkMlMjJwYWdlQ291bnRlciUyMiUzQTQlN0Q=',
+    'x-stainless-arch': 'unknown',
+    'x-stainless-lang': 'js',
+    'x-stainless-os': 'Unknown',
+    'x-stainless-package-version': '0.11.1',
+    'x-stainless-retry-count': '0',
+    'x-stainless-runtime': 'browser:chrome',
+    'x-stainless-runtime-version': '135.0.0',
+    'referer': 'https://api.together.ai/playground/v2/chat/meta-llama/Llama-4-Maverick-17B-128E-Instruct-FP8',
 }
 
 @app.route('/')
@@ -110,6 +112,12 @@ def chat():
     
 @app.route('/search', methods=['POST', 'GET'])
 def search_google():
+    query = request.args.get('query')
+    result = search(query, advanced=True, num_results=10)
+    return jsonify(result)
+
+@app.route('/search-images', methods=['POST', 'GET'])
+def search_google_images():
     query = request.args.get('query')
     result = search(query, advanced=True, num_results=10)
     return jsonify(result)
