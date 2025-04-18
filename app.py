@@ -25,7 +25,8 @@ def get_video_info(video_id):
         'views': item['statistics'].get('viewCount', 0),
         'likes': item['statistics'].get('likeCount', 0),
         'channel': item['snippet']['channelTitle'],
-        'video_id': item['id']
+        'video_id': item['id'],
+        'thumbnail': item['snippet']['thumbnails']['high']['url']  # Add this line
     }
 
 def get_trending_videos():
@@ -45,10 +46,12 @@ def get_trending_videos():
             'video_id': item['id'],
             'views': item['statistics'].get('viewCount', 0),
             'likes': item['statistics'].get('likeCount', 0),
-            'channel': item['snippet']['channelTitle']
+            'channel': item['snippet']['channelTitle'],
+            'thumbnail': item['snippet']['thumbnails']['high']['url']  # Add this line
         }
         videos.append(video_data)
     return videos
+
 
 @app.route('/random')
 def random_videos():
@@ -76,3 +79,6 @@ def video_info(video_id):
         return jsonify(info)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+
+if __name__ == '__main__':
+    app.run(debug=True)
