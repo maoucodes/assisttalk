@@ -5,4 +5,4 @@ gunicorn
 beautifulsoup4
 urllib3
 curl_cffi
-googleapiclient
+google-api-python-client
