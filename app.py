@@ -79,3 +79,24 @@ def video_info(video_id):
         return jsonify(info)
     except Exception as e:
         return jsonify({'error': str(e)}), 500
+    
+@app.route('/search/<query>')
+def search_videos(query):
+        try:
+            request = youtube.search().list(
+                part='snippet',
+                q=query,
+                type='video',
+                maxResults=10
+            )
+            response = request.execute()
+            
+            videos = []
+            for item in response['items']:
+                video_id = item['id']['videoId']
+                video_info = get_video_info(video_id)
+                if video_info:
+                    videos.append(video_info)
+            return jsonify(videos)
+        except Exception as e:
+            return jsonify({'error': str(e)}), 500
