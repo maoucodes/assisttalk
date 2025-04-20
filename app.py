@@ -98,21 +98,27 @@ def video_info(video_id):
     
 @app.route('/search/<query>')
 def search_videos(query):
-        try:
-            request = youtube.search().list(
-                part='snippet',
-                q=query,
-                type='video',
-                maxResults=10
-            )
-            response = request.execute()
-            
-            videos = []
-            for item in response['items']:
-                video_id = item['id']['videoId']
-                video_info = get_video_info(video_id)
-                if video_info:
-                    videos.append(video_info)
-            return jsonify(videos)
-        except Exception as e:
-            return jsonify({'error': str(e)}), 500
+    try:
+        headers = {
+            'accept': '*/*',
+            'accept-language': 'en-US,en;q=0.9,ja;q=0.8',
+            'origin': 'https://youtubelikecounter.com',
+            'priority': 'u=1, i',
+            'referer': 'https://youtubelikecounter.com/',
+            'sec-ch-ua': '"Google Chrome";v="135", "Not-A.Brand";v="8", "Chromium";v="135"',
+            'sec-ch-ua-mobile': '?0',
+            'sec-ch-ua-platform': '"macOS"',
+            'sec-fetch-dest': 'empty',
+            'sec-fetch-mode': 'cors',
+            'sec-fetch-site': 'cross-site',
+            'user-agent': 'Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/135.0.0.0 Safari/537.36',
+            'x-ajay': '18676845972cc94f79a05d11f0ed714a76401cc',
+            'x-catto': '174515350262',
+            'x-midas': '71c98de1f03fb65cae60b46bf938b5edcc35e2a71d4c44ba14a732f482649fcf17b4739b70a3228e6697aa859554bb2',
+        }
+        url = f'https://api.livecounts.io/youtube-live-view-counter/search/{query}'
+        response = requests.get(url, headers=headers)
+        return jsonify(response.json())
+    except Exception as e:
+        return jsonify({'error': str(e)}), 500
+
